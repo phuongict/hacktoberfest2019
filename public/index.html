@@ -43,6 +43,10 @@
       var db = firebase.firestore();
       loadData();
       let button = document.querySelector('button[name=btnAdd]');
+      let del = document.querySelectorAll('.del');
+      console.log(del);
+      for(let i=0; i<del.length; i++)
+        del[i].addEventListener('click', destroy);
       button.addEventListener('click', addItem);
       function addItem(){
         let input = document.querySelector('input[name=username]').value;
@@ -57,11 +61,25 @@
           console.error("Error adding document: ", error);
         });
       }
+      function destroy(event){
+          console.log(event);return false;
+          db.collection("users").doc(index).delete().then(response => {
+            console.log('success  deleted:'+response);
+          }).catch(error => {
+            console.log(error);
+          });
+      }
       function loadData(){
-        db.collection("users").get().then((response) => {
-          let data = response.docs.map(item => '<li>'+item.data().name+'</li>');
-          document.querySelector('#listUser').innerHTML = data.join('');
+        return new Promise((resolve, reject) => {
+            db.collection("users").get().then((response) => {
+              // console.log(response);return;
+              resolve(response.docs);
+            }).catch(error => {
+              reject(error);
+            });
+
         });
+        
       }
     });
   </script>
