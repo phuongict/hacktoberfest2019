@@ -41,12 +41,14 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var db = firebase.firestore();
+      let del = document.querySelector('#listUser');
       loadData();
+
       let button = document.querySelector('button[name=btnAdd]');
-      let del = document.querySelectorAll('.del');
-      console.log(del);
-      for(let i=0; i<del.length; i++)
-        del[i].addEventListener('click', destroy);
+      
+      // console.log(del);
+      // for(let i=0; i<del.length; i++)
+      del.addEventListener('click', destroy);
       button.addEventListener('click', addItem);
       function addItem(){
         let input = document.querySelector('input[name=username]').value;
@@ -62,24 +64,28 @@
         });
       }
       function destroy(event){
-          console.log(event);return false;
-          db.collection("users").doc(index).delete().then(response => {
+        if(event.target.tagName === 'BUTTON' && event.target.name === 'del')
+        {
+          db.collection("users").doc(event.target.dataset.id).delete().then(response => {
             console.log('success  deleted:'+response);
+            loadData();
           }).catch(error => {
             console.log(error);
           });
+        } 
       }
       function loadData(){
-        return new Promise((resolve, reject) => {
             db.collection("users").get().then((response) => {
               // console.log(response);return;
-              resolve(response.docs);
+              render(response.docs);
             }).catch(error => {
-              reject(error);
+              console.log(error);
             });
-
-        });
         
+      }
+      function render(data){
+          let list = data.map(item=>'<li>'+item.data().name+' <button type="button" name="del" data-id="'+item.id+'">delete</button></li>');
+          del.innerHTML = list.join('');
       }
     });
   </script>
