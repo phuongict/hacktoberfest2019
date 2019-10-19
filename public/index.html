@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Welcome to Firebase Hosting</title>
 
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <!-- update the version number as needed -->
   <script defer src="/__/firebase/7.0.0/firebase-app.js"></script>
   <!-- include only the Firebase features as you need -->
@@ -32,75 +43,55 @@
   </style>
 </head>
 <body>
-  <form>
-    <input type="text" name="username"/>
-    <button type="button" name="btnAdd">Add new</button>
-    <button type="button" name="btnUpdate">Update</button>
-  </form>
-  <ul id="listUser"></ul>
+  <div class="container">
+    <form>
+      <table class="table table-bordered" style="width: 500px; margin: auto;">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" name="username" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="text" name="password" class="form-control">
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" name="register">Register</button>
+        </div>
+      </table>
+    </form>
+    <table class="table table-borded" id="listUser">
+    </table>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var db = firebase.firestore();
       let del = document.querySelector('#listUser');
+      let username = document.querySelector('input[name=username]');
+      let password = document.querySelector('input[name=password]');
       loadData();
 
-      const button = document.querySelector('button[name=btnAdd]');
-      const btnUpdate = document.querySelector('button[name=btnUpdate]');
+      const button = document.querySelector('button[name=register]');
       // console.log(del);
       // for(let i=0; i<del.length; i++)
-      del.addEventListener('click', destroy);
-      button.addEventListener('click', addItem);
-      btnUpdate.addEventListener('click', update);
-      function addItem(){
-        let input = document.querySelector('input[name=username]').value;
-        db.collection("users").add({
-          name: input
+      button.addEventListener('click', register);
+      function register(e){
+        e.preventDefault();
+        db.collection("accounts").add({
+          username: username.value,
+          password: password.value,
         })
         .then(function(docRef) {
-          document.querySelector('input[name=username]').value = '';
+          username.value = '';
+          password.value = '';
           loadData();
         })
         .catch(function(error) {
           console.error("Error adding document: ", error);
         });
       }
-      function destroy(event){
-        if(event.target.tagName === 'BUTTON' && event.target.name === 'del')
-        {
-          db.collection("users").doc(event.target.dataset.id).delete().then(response => {
-            console.log('success  deleted:'+response);
-            loadData();
-          }).catch(error => {
-            console.log(error);
-          });
-        }
-        else{
-          if(event.target.tagName === 'BUTTON' && event.target.name === 'edit'){
-            const input = document.querySelector('input[name=username]');
-            input.value = event.target.dataset.text;
-            input.dataset.id = event.target.dataset.id;
-          }
-        }
-
-      }
-      function update(){
-          const input = document.querySelector('input[name=username]');
-          let id = input.dataset.id;
-          let text = input.value;
-          db.collection("users").doc(id).update({
-            name: text
-          }).then(response => {
-            console.log('success  update:'+response);
-            const input = document.querySelector('input[name=username]');
-            input.value = '';
-            loadData();
-          }).catch(error => {
-            console.log(error);
-          });
-      }
       function loadData(){
-        db.collection("users").get().then((response) => {
+        db.collection("accounts").get().then((response) => {
               // console.log(response);return;
               render(response.docs);
             }).catch(error => {
@@ -109,8 +100,19 @@
 
           }
           function render(data){
-            let list = data.map(item=>'<li>'+item.data().name+' <button type="button" name="del" data-id="'+item.id+'">delete</button>'+' <button type="button" name="edit" data-id="'+item.id+'" data-text="'+item.data().name+'">edit</button></li>');
-            del.innerHTML = list.join('');
+            let html = `
+            <tr>
+            <th>Username</th>
+            <th>Password</th>
+            </tr>
+            `;
+            data.forEach(item => {
+              html += '<tr>';
+              html += '<td>'+item.data().username+'</td>';
+              html += '<td>'+item.data().password+'</td>';
+              html += '</tr>';
+            });
+            del.innerHTML = html;
           }
         });
       </script>
